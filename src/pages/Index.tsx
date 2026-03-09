@@ -22,12 +22,12 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background font-body">
       {/* HERO SECTION */}
-      <section className="relative pt-12 md:pt-16 overflow-hidden">
+      <section className="relative pt-6 md:pt-8 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-accent via-background to-warm-cream" />
         <div className="container mx-auto px-4 py-12 md:py-20 relative z-10">
           <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
             <div className="space-y-6 md:space-y-8">
-              <div className="flex justify-center mb-4">
+              <div className="flex justify-center">
                 {/* logo.png should be placed in the public folder */}
                 <img src="/logo.png" alt="My Life Companion logo" className="h-24 md:h-32 w-auto" />
               </div>
