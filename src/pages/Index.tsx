@@ -1,11 +1,65 @@
 import { Phone, MessageCircle, MapPin, Shield, Users, Heart, Check, Star } from "lucide-react";
 import heroFamily from "@/assets/hero-family.jpg";
+import { useForm } from "react-hook-form";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { toast } from "sonner";
 
 const WHATSAPP_LINK = "https://wa.me/254118043715";
 const PHONE_NUMBER = "+254 118 043 715";
 const PHONE_LINK = "tel:+254118043715";
 
 const Index = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const form = useForm({
+    defaultValues: {
+      fullName: "",
+      idPassport: "",
+      kraPin: "",
+      phone: "",
+      email: "",
+      dateOfBirth: "",
+      gender: "",
+      coverOption: "",
+      numberOfChildren: "",
+      parentsCovered: "",
+      beneficiaryName: "",
+      relationship: "",
+      beneficiaryPhone: "",
+    },
+  });
+
+  const onSubmit = async (data: any) => {
+    setIsSubmitting(true);
+    try {
+      const response = await fetch("https://formspree.io/f/mdawlbpe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        setIsSubmitted(true);
+        toast.success("Thank you for applying. Our team will contact you shortly.");
+        form.reset();
+      } else {
+        toast.error("Something went wrong. Please try again.");
+      }
+    } catch (error) {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const plans = [
     { option: 1, price: "1,500", principal: 50000, spouse: 50000, children: 50000, parents: 50000, extraChild: 300, parentAge80: 1000 },
     { option: 2, price: "3,000", principal: 100000, spouse: 100000, children: 100000, parents: 100000, extraChild: 500, parentAge80: 2000 },
@@ -223,6 +277,268 @@ const Index = () => {
           <p className="text-xs text-muted-foreground mt-6 text-center">
             Mandatory documents: Principal member’s copy of ID and KRA PIN, and spouse’s copy of ID.
           </p>
+        </div>
+      </section>
+
+      {/* APPLICATION FORM SECTION */}
+      <section className="py-16 md:py-24 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="max-w-2xl mx-auto">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground text-center mb-8">
+              Apply for <span className="text-gradient-orange">Funeral Cover</span>
+            </h2>
+
+            {!isSubmitted ? (
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  {/* Personal Details */}
+                  <div className="bg-card rounded-xl p-6 border border-border">
+                    <h3 className="font-display text-xl font-semibold text-foreground mb-4">Personal Details</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="fullName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Full Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter your full name" {...field} required />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="idPassport"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>ID / Passport Number</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter ID or passport number" {...field} required />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="kraPin"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>KRA PIN</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter KRA PIN" {...field} required />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="phone"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Phone Number</FormLabel>
+                            <FormControl>
+                              <Input type="tel" placeholder="Enter phone number" {...field} required />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                              <Input type="email" placeholder="Enter email address" {...field} required />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="dateOfBirth"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Date of Birth</FormLabel>
+                            <FormControl>
+                              <Input type="date" {...field} required />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="gender"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Gender</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select gender" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="male">Male</SelectItem>
+                                <SelectItem value="female">Female</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Cover Option */}
+                  <div className="bg-card rounded-xl p-6 border border-border">
+                    <h3 className="font-display text-xl font-semibold text-foreground mb-4">Cover Option</h3>
+                    <FormField
+                      control={form.control}
+                      name="coverOption"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Select Cover Option</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Choose your plan" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="option1">Option 1 – Annual Premium KES 1,500</SelectItem>
+                              <SelectItem value="option2">Option 2 – Annual Premium KES 3,000</SelectItem>
+                              <SelectItem value="option3">Option 3 – Annual Premium KES 6,000</SelectItem>
+                              <SelectItem value="option4">Option 4 – Annual Premium KES 9,000</SelectItem>
+                              <SelectItem value="option5">Option 5 – Annual Premium KES 12,000</SelectItem>
+                              <SelectItem value="option6">Option 6 – Annual Premium KES 15,000</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Dependents */}
+                  <div className="bg-card rounded-xl p-6 border border-border">
+                    <h3 className="font-display text-xl font-semibold text-foreground mb-4">Dependents</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="numberOfChildren"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Number of Children</FormLabel>
+                            <FormControl>
+                              <Input type="number" min="0" placeholder="Enter number of children" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="parentsCovered"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Parents Covered</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select option" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="yes">Yes</SelectItem>
+                                <SelectItem value="no">No</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Beneficiary Details */}
+                  <div className="bg-card rounded-xl p-6 border border-border">
+                    <h3 className="font-display text-xl font-semibold text-foreground mb-4">Beneficiary Details</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="beneficiaryName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Beneficiary Name</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter beneficiary name" {...field} required />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="relationship"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Relationship</FormLabel>
+                            <FormControl>
+                              <Input placeholder="e.g., Spouse, Child, Parent" {...field} required />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="beneficiaryPhone"
+                        render={({ field }) => (
+                          <FormItem className="md:col-span-2">
+                            <FormLabel>Beneficiary Phone Number</FormLabel>
+                            <FormControl>
+                              <Input type="tel" placeholder="Enter beneficiary phone number" {...field} required />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="text-center space-y-4">
+                    <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto px-8 py-3">
+                      {isSubmitting ? "Submitting..." : "Submit Application"}
+                    </Button>
+                    <div>
+                      <a
+                        href="https://wa.me/254118043715"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-primary hover:text-primary/80 font-medium"
+                      >
+                        <MessageCircle className="w-5 h-5" /> Apply via WhatsApp instead
+                      </a>
+                    </div>
+                  </div>
+                </form>
+              </Form>
+            ) : (
+              <div className="bg-card rounded-xl p-8 border border-border text-center">
+                <Check className="w-16 h-16 text-primary mx-auto mb-4" />
+                <h3 className="font-display text-2xl font-bold text-foreground mb-2">Application Submitted!</h3>
+                <p className="text-muted-foreground">Thank you for applying. Our team will contact you shortly.</p>
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
