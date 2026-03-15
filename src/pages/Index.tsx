@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 
 const WHATSAPP_LINK = "https://wa.me/254118043715";
@@ -27,11 +29,27 @@ const Index = () => {
       dateOfBirth: "",
       gender: "",
       coverOption: "",
-      numberOfChildren: "",
-      parentsCovered: "",
       beneficiaryName: "",
       relationship: "",
       beneficiaryPhone: "",
+      spouse: {
+        fullName: "",
+        idPassport: "",
+        dateOfBirth: "",
+        phone: "",
+      },
+      children: [
+        { fullName: "", birthCertificate: "", dateOfBirth: "" },
+        { fullName: "", birthCertificate: "", dateOfBirth: "" },
+        { fullName: "", birthCertificate: "", dateOfBirth: "" },
+        { fullName: "", birthCertificate: "", dateOfBirth: "" },
+      ],
+      parents: [
+        { fullName: "", relationship: "", idNumber: "", dateOfBirth: "" },
+        { fullName: "", relationship: "", idNumber: "", dateOfBirth: "" },
+        { fullName: "", relationship: "", idNumber: "", dateOfBirth: "" },
+        { fullName: "", relationship: "", idNumber: "", dateOfBirth: "" },
+      ],
     },
   });
 
@@ -427,45 +445,207 @@ const Index = () => {
                     />
                   </div>
 
-                  {/* Dependents */}
+                  {/* Dependants Information */}
                   <div className="bg-card rounded-xl p-6 border border-border">
-                    <h3 className="font-display text-xl font-semibold text-foreground mb-4">Dependents</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="numberOfChildren"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Number of Children</FormLabel>
-                            <FormControl>
-                              <Input type="number" min="0" placeholder="Enter number of children" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="parentsCovered"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Parents Covered</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select option" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="yes">Yes</SelectItem>
-                                <SelectItem value="no">No</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+                    <h3 className="font-display text-xl font-semibold text-foreground mb-6">Dependants Information</h3>
+
+                    {/* Spouse Details */}
+                    <Collapsible className="mb-6">
+                      <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-accent/50 rounded-lg hover:bg-accent/70 transition-colors">
+                        <h4 className="font-display text-lg font-semibold text-foreground">Spouse Details</h4>
+                        <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="pt-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="spouse.fullName"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Spouse Full Name</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Enter spouse full name" {...field} required />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="spouse.idPassport"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>ID / Passport Number</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="Enter ID or passport number" {...field} required />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="spouse.dateOfBirth"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Date of Birth</FormLabel>
+                                <FormControl>
+                                  <Input type="date" {...field} required />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="spouse.phone"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Phone Number</FormLabel>
+                                <FormControl>
+                                  <Input type="tel" placeholder="Enter phone number" {...field} required />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </CollapsibleContent>
+                    </Collapsible>
+
+                    {/* Children Details */}
+                    <Collapsible className="mb-6">
+                      <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-accent/50 rounded-lg hover:bg-accent/70 transition-colors">
+                        <h4 className="font-display text-lg font-semibold text-foreground">Children Details (Up to 4)</h4>
+                        <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="pt-4 space-y-6">
+                        {[0, 1, 2, 3].map((index) => (
+                          <div key={index} className="border border-border rounded-lg p-4">
+                            <h5 className="font-semibold text-foreground mb-3">Child {index + 1}</h5>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <FormField
+                                control={form.control}
+                                name={`children.${index}.fullName`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Full Name</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="Enter full name" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`children.${index}.birthCertificate`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Birth Certificate Number</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="Enter certificate number" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`children.${index}.dateOfBirth`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Date of Birth</FormLabel>
+                                    <FormControl>
+                                      <Input type="date" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </CollapsibleContent>
+                    </Collapsible>
+
+                    {/* Parents / Parents-in-law */}
+                    <Collapsible className="mb-6">
+                      <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-accent/50 rounded-lg hover:bg-accent/70 transition-colors">
+                        <h4 className="font-display text-lg font-semibold text-foreground">Parents / Parents-in-law (Up to 4)</h4>
+                        <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="pt-4 space-y-6">
+                        {[0, 1, 2, 3].map((index) => (
+                          <div key={index} className="border border-border rounded-lg p-4">
+                            <h5 className="font-semibold text-foreground mb-3">Parent {index + 1}</h5>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <FormField
+                                control={form.control}
+                                name={`parents.${index}.fullName`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Full Name</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="Enter full name" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`parents.${index}.relationship`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Relationship</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                      <FormControl>
+                                        <SelectTrigger>
+                                          <SelectValue placeholder="Select relationship" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent>
+                                        <SelectItem value="father">Father</SelectItem>
+                                        <SelectItem value="mother">Mother</SelectItem>
+                                        <SelectItem value="parent-in-law">Parent-in-law</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`parents.${index}.idNumber`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>ID Number</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="Enter ID number" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`parents.${index}.dateOfBirth`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Date of Birth</FormLabel>
+                                    <FormControl>
+                                      <Input type="date" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </CollapsibleContent>
+                    </Collapsible>
                   </div>
 
                   {/* Beneficiary Details */}
