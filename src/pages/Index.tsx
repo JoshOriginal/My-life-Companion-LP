@@ -31,6 +31,7 @@ const Index = () => {
       coverOption: "",
       beneficiaryName: "",
       relationship: "",
+      beneficiary_id: "",
       beneficiaryPhone: "",
       spouse: {
         fullName: "",
@@ -56,7 +57,7 @@ const Index = () => {
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     try {
-      const response = await fetch("https://formspree.io/f/mdawlbpe", {
+      const response = await fetch("/api/application", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -64,9 +65,11 @@ const Index = () => {
         body: JSON.stringify(data),
       });
 
-      if (response.ok) {
+      const result = await response.json();
+
+      if (response.ok && result.success) {
         setIsSubmitted(true);
-        toast.success("Thank you for applying. Our team will contact you shortly.");
+        toast.success(result.message);
         form.reset();
       } else {
         toast.error("Something went wrong. Please try again.");
@@ -659,7 +662,7 @@ const Index = () => {
                           <FormItem>
                             <FormLabel>Beneficiary Name</FormLabel>
                             <FormControl>
-                              <Input placeholder="Enter beneficiary name" {...field} required />
+                              <Input placeholder="Enter beneficiary full name" {...field} required />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -680,9 +683,22 @@ const Index = () => {
                       />
                       <FormField
                         control={form.control}
+                        name="beneficiary_id"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Beneficiary ID / Passport Number</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter beneficiary ID or Passport number" {...field} required />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
                         name="beneficiaryPhone"
                         render={({ field }) => (
-                          <FormItem className="md:col-span-2">
+                          <FormItem>
                             <FormLabel>Beneficiary Phone Number</FormLabel>
                             <FormControl>
                               <Input type="tel" placeholder="Enter beneficiary phone number" {...field} required />
