@@ -1,5 +1,7 @@
 const PDFDocument = require('pdfkit');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 module.exports = async function handler(req, res) {
   // Enable CORS
@@ -13,17 +15,21 @@ module.exports = async function handler(req, res) {
   }
 
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
   try {
+    // Formspree webhook payload
     const data = req.body;
+
+    console.log('Received webhook data:', JSON.stringify(data, null, 2));
 
     // Validate required fields
     if (!data.fullName || !data.email || !data.phone) {
-      return res.status(400).json({ 
+      console.error('Missing required fields:', { fullName: data.fullName, email: data.email, phone: data.phone });
+      return res.status(400).json({
         success: false,
-        error: 'Missing required fields' 
+        error: 'Missing required fields: fullName, email, phone'
       });
     }
 
@@ -74,25 +80,25 @@ module.exports = async function handler(req, res) {
       cover_option: data.coverOption || 'N/A'
     };
 
-    // Generate PDF as a promise
+    console.log('Mapped formData:', JSON.stringify(formData, null, 2));
+
+    // Generate PDF
     const pdfBuffer = await generatePDF(formData);
+    console.log('PDF generated successfully, size:', pdfBuffer.length);
 
-    // Send email if credentials are available
-    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-      await sendEmail(pdfBuffer, formData.email);
-    } else {
-      console.warn('Email credentials not configured - skipping email');
-    }
+    // Send email
+    await sendEmail(pdfBuffer, formData.email);
+    console.log('Email sent successfully');
 
-    return res.status(200).json({ 
-      success: true, 
-      message: 'Application submitted successfully. Our team will contact you shortly.' 
+    return res.status(200).json({
+      success: true,
+      message: 'Application processed successfully'
     });
   } catch (error) {
     console.error('API Error:', error);
-    return res.status(500).json({ 
+    return res.status(500).json({
       success: false,
-      error: error.message || 'Internal server error' 
+      error: error.message || 'Internal server error'
     });
   }
 };
@@ -101,7 +107,10 @@ module.exports = async function handler(req, res) {
 function generatePDF(formData) {
   return new Promise((resolve, reject) => {
     try {
-      const doc = new PDFDocument();
+      const doc = new PDFDocument({
+        size: 'A4',
+        margin: 50
+      });
       const buffers = [];
 
       doc.on('data', (chunk) => buffers.push(chunk));
@@ -110,39 +119,43 @@ function generatePDF(formData) {
       });
       doc.on('error', reject);
 
-      // PDF Content
-      doc.fontSize(20).text('My Life Companion', { align: 'center' });
+      // Header
+      doc.fontSize(24).font('Helvetica-Bold').text('My Life Companion', { align: 'center' });
       doc.moveDown(0.5);
-      doc.fontSize(16).text('Funeral Expense Application Form', { align: 'center' });
+      doc.fontSize(18).text('Funeral Cover Application Form', { align: 'center' });
       doc.moveDown(1);
 
-      // Principal Member
-      doc.fontSize(14).font('Helvetica-Bold').text('PRINCIPAL MEMBER DETAILS');
-      doc.font('Helvetica').fontSize(11);
-      doc.text(`Name: ${formData.principal_name}`);
-      doc.text(`ID: ${formData.principal_id}`);
+      // Principal Member Details
+      doc.fontSize(16).font('Helvetica-Bold').text('PRINCIPAL MEMBER DETAILS');
+      doc.moveDown(0.5);
+      doc.font('Helvetica').fontSize(12);
+      doc.text(`Full Name: ${formData.principal_name}`);
+      doc.text(`ID/Passport Number: ${formData.principal_id}`);
       doc.text(`KRA PIN: ${formData.kra_pin}`);
-      doc.text(`Phone: ${formData.phone}`);
-      doc.text(`Email: ${formData.email}`);
+      doc.text(`Phone Number: ${formData.phone}`);
+      doc.text(`Email Address: ${formData.email}`);
       doc.text(`Date of Birth: ${formData.dob}`);
       doc.text(`Gender: ${formData.gender}`);
-      doc.moveDown();
+      doc.moveDown(1);
 
       // Cover Option
-      doc.fontSize(12).font('Helvetica-Bold').text('COVER OPTION');
-      doc.font('Helvetica').fontSize(11).text(`Selected Plan: ${formData.cover_option}`);
-      doc.moveDown();
+      doc.fontSize(14).font('Helvetica-Bold').text('COVER OPTION SELECTED');
+      doc.moveDown(0.3);
+      doc.font('Helvetica').fontSize(12).text(`Plan: ${formData.cover_option}`);
+      doc.moveDown(1);
 
-      // Spouse
+      // Spouse Details
       if (formData.spouse_name) {
-        doc.fontSize(12).font('Helvetica-Bold').text('SPOUSE DETAILS');
-        doc.font('Helvetica').fontSize(11).text(`Name: ${formData.spouse_name}`);
-        doc.text(`ID: ${formData.spouse_id}`);
+        doc.fontSize(14).font('Helvetica-Bold').text('SPOUSE DETAILS');
+        doc.moveDown(0.3);
+        doc.font('Helvetica').fontSize(12);
+        doc.text(`Full Name: ${formData.spouse_name}`);
+        doc.text(`ID/Passport Number: ${formData.spouse_id}`);
         doc.text(`Date of Birth: ${formData.spouse_dob}`);
-        doc.moveDown();
+        doc.moveDown(1);
       }
 
-      // Children
+      // Children Covered
       const children = [
         { name: formData.child1_name, cert: formData.child1_birth_certificate, dob: formData.child1_dob },
         { name: formData.child2_name, cert: formData.child2_birth_certificate, dob: formData.child2_dob },
@@ -151,18 +164,19 @@ function generatePDF(formData) {
       ].filter(c => c.name);
 
       if (children.length > 0) {
-        doc.fontSize(12).font('Helvetica-Bold').text('CHILDREN COVERED');
+        doc.fontSize(14).font('Helvetica-Bold').text('CHILDREN COVERED');
         doc.moveDown(0.3);
         children.forEach((child, index) => {
-          doc.font('Helvetica').fontSize(11).text(`${index + 1}. Name: ${child.name}`);
-          doc.text(`   Birth Certificate: ${child.cert}`);
-          doc.text(`   DOB: ${child.dob}`);
-          doc.moveDown(0.2);
+          doc.font('Helvetica').fontSize(12);
+          doc.text(`${index + 1}. Full Name: ${child.name}`);
+          doc.text(`   Birth Certificate Number: ${child.cert}`);
+          doc.text(`   Date of Birth: ${child.dob}`);
+          doc.moveDown(0.5);
         });
-        doc.moveDown();
+        doc.moveDown(0.5);
       }
 
-      // Parents
+      // Parents/Parents-in-law Covered
       const parents = [
         { name: formData.parent1_name, rel: formData.parent1_relationship, id: formData.parent1_id, dob: formData.parent1_dob },
         { name: formData.parent2_name, rel: formData.parent2_relationship, id: formData.parent2_id, dob: formData.parent2_dob },
@@ -171,29 +185,34 @@ function generatePDF(formData) {
       ].filter(p => p.name);
 
       if (parents.length > 0) {
-        doc.fontSize(12).font('Helvetica-Bold').text('PARENTS / PARENTS-IN-LAW COVERED');
+        doc.fontSize(14).font('Helvetica-Bold').text('PARENTS / PARENTS-IN-LAW COVERED');
         doc.moveDown(0.3);
         parents.forEach((parent, index) => {
-          doc.font('Helvetica').fontSize(11).text(`${index + 1}. Name: ${parent.name}`);
+          doc.font('Helvetica').fontSize(12);
+          doc.text(`${index + 1}. Full Name: ${parent.name}`);
           doc.text(`   Relationship: ${parent.rel}`);
-          doc.text(`   ID: ${parent.id}`);
-          doc.text(`   DOB: ${parent.dob}`);
-          doc.moveDown(0.2);
+          doc.text(`   ID Number: ${parent.id}`);
+          doc.text(`   Date of Birth: ${parent.dob}`);
+          doc.moveDown(0.5);
         });
-        doc.moveDown();
+        doc.moveDown(0.5);
       }
 
-      // Beneficiary
-      doc.fontSize(12).font('Helvetica-Bold').text('BENEFICIARY DETAILS');
-      doc.font('Helvetica').fontSize(11).text(`Name: ${formData.beneficiary_name}`);
+      // Beneficiary Details
+      doc.fontSize(14).font('Helvetica-Bold').text('BENEFICIARY DETAILS');
+      doc.moveDown(0.3);
+      doc.font('Helvetica').fontSize(12);
+      doc.text(`Full Name: ${formData.beneficiary_name}`);
       doc.text(`Relationship: ${formData.beneficiary_relationship}`);
-      doc.text(`ID / Passport: ${formData.beneficiary_id}`);
-      doc.text(`Phone: ${formData.beneficiary_phone}`);
-      doc.moveDown(1);
+      doc.text(`ID / Passport Number: ${formData.beneficiary_id}`);
+      doc.text(`Phone Number: ${formData.beneficiary_phone}`);
+      doc.moveDown(2);
 
       // Footer
       doc.fontSize(10).font('Helvetica-Bold').text('My Life Companion Funeral Services', { align: 'center' });
-      doc.fontSize(9).font('Helvetica').text('Customer Signature: ______________________', { align: 'center' });
+      doc.moveDown(0.5);
+      doc.fontSize(9).font('Helvetica').text('Customer Signature: _______________________________', { align: 'center' });
+      doc.text('Date: _________________________________', { align: 'center' });
 
       doc.end();
     } catch (error) {
@@ -202,29 +221,25 @@ function generatePDF(formData) {
   });
 }
 
-// Send email
+// Send email using Resend
 async function sendEmail(pdfBuffer, applicantEmail) {
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
-    }
-  });
-
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: 'info@mylife-companion.com',
-    replyTo: applicantEmail,
+  const { data, error } = await resend.emails.send({
+    from: 'My Life Companion <onboarding@resend.dev>',
+    to: ['info@mylife-companion.com', 'mylifecompanion01@gmail.com'],
+    reply_to: applicantEmail,
     subject: 'New My Life Companion Funeral Cover Application',
-    text: `New application received from ${applicantEmail}.\n\nPlease find attached the application PDF.`,
+    text: 'A new application has been submitted. See attached PDF.',
     attachments: [
       {
         filename: 'application.pdf',
-        content: pdfBuffer
-      }
-    ]
-  };
+        content: pdfBuffer,
+      },
+    ],
+  });
 
-  return transporter.sendMail(mailOptions);
+  if (error) {
+    throw new Error(`Email sending failed: ${error.message}`);
+  }
+
+  return data;
 }

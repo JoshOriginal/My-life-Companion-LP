@@ -57,19 +57,22 @@ const Index = () => {
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
     try {
-      const response = await fetch("/api/application", {
+      const formData = {
+        ...data,
+        _format: "json"
+      };
+
+      const response = await fetch("https://formspree.io/f/mdawlbpe", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(formData),
       });
 
-      const result = await response.json();
-
-      if (response.ok && result.success) {
+      if (response.ok) {
         setIsSubmitted(true);
-        toast.success(result.message);
+        toast.success("Application submitted successfully. Our team will contact you shortly.");
         form.reset();
       } else {
         toast.error("Something went wrong. Please try again.");
