@@ -60,7 +60,7 @@ module.exports = async function handler(req, res) {
     const doc = new PDFDocument();
     const buffers = [];
 
-    doc.on('data', buffers.push.bind(buffers));
+    doc.on('data', (chunk) => buffers.push(chunk));
     doc.on('end', async () => {
       const pdfBuffer = Buffer.concat(buffers);
 
@@ -75,7 +75,8 @@ module.exports = async function handler(req, res) {
 
       const mailOptions = {
         from: process.env.EMAIL_USER,
-        to: 'info@mylife-companion.com',
+        to: ['info@mylife-companion.com', 'mylifecompanion01@gmail.com'],
+        replyTo: formData.email,
         subject: 'New My Life Companion Funeral Cover Application',
         text: 'Please find attached the new application PDF.',
         attachments: [
