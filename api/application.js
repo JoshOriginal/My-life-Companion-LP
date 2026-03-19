@@ -209,10 +209,52 @@ function generatePDF(formData) {
       doc.moveDown(2);
 
       // Footer
-      doc.fontSize(10).font('Helvetica-Bold').text('My Life Companion Funeral Services', { align: 'center' });
-      doc.moveDown(0.5);
-      doc.fontSize(9).font('Helvetica').text('Customer Signature: _______________________________', { align: 'center' });
-      doc.text('Date: _________________________________', { align: 'center' });
+// Signature Section
+doc.addPage(); // ensures it always looks clean and not cramped
+
+doc.fontSize(16).font('Helvetica-Bold').text('DECLARATION & SIGNATURE');
+doc.moveDown(0.5);
+
+doc.font('Helvetica').fontSize(11).text(
+  'I hereby declare that the information provided in this application is true and correct to the best of my knowledge. I understand that any false or misleading information may result in rejection of this application or cancellation of the policy.'
+);
+
+doc.moveDown(1);
+
+doc.text(
+  'I consent to My Life Companion Funeral Services processing my personal data for the purpose of providing funeral cover services in accordance with applicable laws and regulations.'
+);
+
+doc.moveDown(2);
+
+    // Signature lines
+    const startY = doc.y;
+
+    doc.font('Helvetica-Bold').fontSize(12).text('Applicant Signature:', 50, startY);
+    doc.font('Helvetica').text('_______________________________', 200, startY);
+
+    doc.moveDown(2);
+
+    doc.font('Helvetica-Bold').text('Date:', 50);
+    doc.font('Helvetica').text('_______________________________', 200);
+
+    doc.moveDown(2);
+
+    doc.font('Helvetica-Bold').text('Authorized Officer:', 50);
+    doc.font('Helvetica').text('_______________________________', 200);
+
+    doc.moveDown(3);
+
+    // Footer branding
+    doc.fontSize(10)
+      .font('Helvetica-Bold')
+      .text('My Life Companion Funeral Services', { align: 'center' });
+
+    doc.moveDown(0.5);
+
+    doc.fontSize(9)
+      .font('Helvetica')
+      .text('Thank you for choosing My Life Companion', { align: 'center' });
 
       doc.end();
     } catch (error) {
