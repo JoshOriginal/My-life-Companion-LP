@@ -147,7 +147,7 @@ const Index = () => {
                 <img src="/logo.png" alt="My Life Companion logo" className="h-24 md:h-32 w-auto" />
               </div>
               <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
-                Protect Your Family <span className="text-gradient-orange">When It Matters Most</span>
+                Support Your Family <span className="text-gradient-orange">When It Matters Most</span>
               </h1>
               <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
                 Affordable welfare support for Kenyan families during life's most difficult moments.
