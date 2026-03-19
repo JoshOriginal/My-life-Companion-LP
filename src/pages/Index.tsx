@@ -19,7 +19,7 @@ const Index = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const form = useForm({
+  const form = useForm<FormDataType>({
     defaultValues: {
       fullName: "",
       idPassport: "",
@@ -28,6 +28,7 @@ const Index = () => {
       email: "",
       dateOfBirth: "",
       gender: "",
+      signature: "",
       coverOption: "",
       beneficiaryName: "",
       relationship: "",
@@ -54,7 +55,43 @@ const Index = () => {
     },
   });
 
-  const onSubmit = async (data: unknown) => {
+    type FormDataType = {
+      fullName: string;
+      idPassport: string;
+      kraPin: string;
+      phone: string;
+      email: string;
+      dateOfBirth: string;
+      gender: string;
+      coverOption: string;
+      beneficiaryName: string;
+      relationship: string;
+      beneficiary_id: string;
+      beneficiaryPhone: string;
+      signature: string;
+
+      spouse?: {
+        fullName?: string;
+        idPassport?: string;
+        dateOfBirth?: string;
+        phone?: string;
+      };
+
+      children?: {
+        fullName?: string;
+        birthCertificate?: string;
+        dateOfBirth?: string;
+      }[];
+
+      parents?: {
+        fullName?: string;
+        relationship?: string;
+        idNumber?: string;
+        dateOfBirth?: string;
+      }[];
+    };
+
+  const onSubmit = async (data: FormDataType) => {
     setIsSubmitting(true);
     try {
       const formData = {
@@ -711,6 +748,30 @@ const Index = () => {
                         )}
                       />
                     </div>
+                  </div>
+
+                  <div className="bg-card rounded-xl p-6 border border-border">
+                    <h3 className="font-display text-xl font-semibold text-foreground mb-4">
+                      Declaration & Signature
+                    </h3>
+
+                    <p className="text-sm text-muted-foreground mb-4">
+                      I confirm that the information provided is accurate and I agree to the terms of My Life Companion.
+                    </p>
+
+                    <FormField
+                      control={form.control}
+                      name="signature"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Full Name (Digital Signature)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Type your full name as signature" {...field} required />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
 
                   <div className="text-center space-y-4">
