@@ -20,7 +20,7 @@ module.exports = async function handler(req, res) {
 
   try {
     // Formspree webhook payload
-    const data = req.body;
+    const data = req.body || {};
 
     console.log('Received webhook data:', JSON.stringify(data, null, 2));
 
@@ -77,7 +77,8 @@ module.exports = async function handler(req, res) {
       beneficiary_relationship: data.relationship || 'N/A',
       beneficiary_id: data.beneficiary_id || 'N/A',
       beneficiary_phone: data.beneficiaryPhone || 'N/A',
-      cover_option: data.coverOption || 'N/A'
+      cover_option: data.coverOption || 'N/A',
+      signature: data?.signature || 'N/A'
     };
 
     console.log('Mapped formData:', JSON.stringify(formData, null, 2));
@@ -231,7 +232,8 @@ doc.moveDown(2);
     const startY = doc.y;
 
     doc.font('Helvetica-Bold').fontSize(12).text('Applicant Signature:', 50, startY);
-    doc.font('Helvetica').text('_______________________________', 200, startY);
+    // Show actual signature (typed name)
+    doc.font('Helvetica').text(formData.signature || '_______________________________', 200, startY);
 
     doc.moveDown(2);
 
