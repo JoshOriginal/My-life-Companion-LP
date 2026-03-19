@@ -54,7 +54,7 @@ const Index = () => {
     },
   });
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: unknown) => {
     setIsSubmitting(true);
     try {
       const formData = {
